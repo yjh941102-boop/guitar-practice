@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데일리 기타 연습 루틴 & 골 트래커</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #F5F5F7;
+            --card-bg: #FFFFFF;
+            --text-main: #1D1D1F;
+            --text-sub: #86868B;
+            --accent: #0071E3;
+            --accent-glow: rgba(0, 113, 227, 0.15);
+            --border-color: #E2E2E7;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            --radius: 18px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 90px;
+        }
+
+        /* 상단 고정 바 */
+        .top-fixed-bar {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .metronome-top-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin: 0 auto;
+        }
+
+        .metronome-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .metro-start-btn {
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            font-size: 0.82rem;
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 3px 10px var(--accent-glow);
+            transition: all 0.2s;
+        }
+
+        .metro-start-btn.active {
+            background: #FF3B30;
+        }
+
+        .bpm-step-btn {
+            background: #F1F1F3;
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.78rem;
+            color: #48484A;
+        }
+
+        .bpm-number {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+            outline: none;
+        }
+
+        .bpm-slider {
+            width: 75px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .metro-select {
+            padding: 4px 6px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 0.78rem;
+            background: #F8F9FA;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+        }
+
+        .visualizer-dots {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #D1D1D6;
+            transition: background-color 0.1s, transform 0.1s;
+        }
+
+        .dot.active {
+            background-color: var(--accent);
+            transform: scale(1.3);
+        }
+
+        .global-stopwatch-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #F8F9FA;
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .global-sw-display {
+            font-family: 'Plus Jakarta Sans', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1D1D1F;
+        }
+
+        .mini-tracker-preview {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #F1F1F3;
+            padding: 6px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            transition: background 0.2s;
+            z-index: 1001;
+        }
+
+        .mini-tracker-preview:hover {
+            background: #E5E5EA;
+        }
+
+        button {
+            background: #FFF;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.82rem;
+        }
+
+        button:hover {
+            background: #F8F9FA;
+            border-color: #AEAEB2;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: -0.5px;
+        }
+
+        .tab-menu {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: var(--radius);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--text-main);
+            color: white;
+            border-color: var(--text-main);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        .practice-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #111113;
+        }
+
+        .card-desc {
+            font-size: 0.92rem;
+            color: var(--text-sub);
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        /* 각 단계별 개별 메모 입력창 */
+        .card-memo-container {
+            margin-bottom: 14px;
+        }
+        .card-memo-input {
+            width: 100%;
+            height: 60px;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            resize: none;
+            font-size: 0.85rem;
+            background: #FAFAFC;
+            color: var(--text-main);
+        }
+        .card-memo-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .image-upload-container {
+            margin-top: 14px;
+            border: 2px dashed var(--border-color);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            background: #FAFAFC;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-upload-container img {
+            width: auto;
+            max-width: 100%;
+            max-height: 380px;
+            border-radius: 10px;
+            display: none;
+            object-fit: contain;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+
+        .image-actions {
+            margin-top: 10px;
+            display: none;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .upload-label {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            font-weight: 500;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+        .timer-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid #EFEFF4;
+        }
+
+        .pomodoro-capsule {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #F5F5F7 0%, #EFEFF4 100%);
+            padding: 8px 16px;
+            border-radius: 40px;
+            gap: 16px;
+            border: 1px solid #D1D1D6;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+        }
+
+        .pomodoro-display {
+            font-family: 'Plus Jakarta Sans', monospace;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .pomodoro-display:hover {
+            background: rgba(0, 113, 227, 0.08);
+            color: var(--accent);
+        }
+
+        .pomodoro-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pomodoro-btn {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.2s;
+            color: #3A3A3C;
+        }
+
+        .pomodoro-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .pomodoro-setting-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+            color: var(--text-sub);
+            transition: color 0.2s;
+        }
+
+        .pomodoro-setting-btn:hover {
+            color: var(--accent);
+        }
+
+        /* 캘린더 모달 창 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(6px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .modal-card {
+            background: #FFF;
+            width: 90%;
+            max-width: 420px;
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .day-name {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            font-weight: 600;
+            padding-bottom: 4px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            background: #F2F2F7;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .calendar-day.completed {
+            background: #34C759;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(52, 199, 89, 0.3);
+        }
+
+        .comment-section {
+            margin-top: 22px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 16px;
+        }
+
+        .comment-date-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+
+        .comment-textarea {
+            width: 100%;
+            height: 75px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            resize: none;
+            font-size: 0.88rem;
+            background: #FAFAFC;
+        }
+
+        .comment-textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        // 구글 웹 앱 URL 주소 (연동 원하시면 아래에 넣으세요)
+        const GOOGLE_SHEETS_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"; 
+    </script>
+
+    <!-- 상단 고정 바 -->
+    <div class="top-fixed-bar">
+        <div class="metronome-top-container">
+            <div class="metronome-row">
+                <button class="metro-start-btn" id="metroPlayBtn" onclick="toggleMetronome()">▶ 시작</button>
+                <button class="bpm-step-btn" onclick="changeBpm(-5)">-5</button>
+                <button class="bpm-step-btn" onclick="changeBpm(-1)">-1</button>
+                
+                <div class="bpm-display-group">
+                    <div class="bpm-number" id="bpmNumberText" contenteditable="true" onblur="updateBpmFromEditable(this.innerText)">100</div>
+                </div>
+
+                <button class="bpm-step-btn" onclick="changeBpm(1)">+1</button>
+                <button class="bpm-step-btn" onclick="changeBpm(5)">+5</button>
+                <input type="range" class="bpm-slider" id="bpmSlider" min="40" max="240" value="100" oninput="updateBpmFromSlider(this.value)">
+                
+                <select class="metro-select" id="metroSoundSelect">
+                    <option value="beep">기본 삐삐음</option>
+                    <option value="woodblock">우드블록 (탁탁)</option>
+                    <option value="click">디지털 클릭</option>
+                </select>
+
+                <div class="volume-control">
+                    <span>🔊</span>
+                    <input type="range" min="0" max="1" step="0.05" value="0.7" id="metroVol" style="width:50px; accent-color:var(--accent);">
+                </div>
+            </div>
+            <div class="visualizer-dots">
+                <div class="dot" id="dot-0"></div>
+                <div class="dot" id="dot-1"></div>
+                <div class="dot" id="dot-2"></div>
+                <div class="dot" id="dot-3"></div>
+            </div>
+        </div>
+
+        <div class="global-stopwatch-bar">
+            <span style="font-size:0.8rem; font-weight:600; color:var(--text-sub);">스톱워치</span>
+            <span class="global-sw-display" id="globalSwDisplay">00:00</span>
+            <button id="globalSwBtn" onclick="toggleGlobalStopwatch()" style="padding:4px 10px; font-size:0.75rem;">시작</button>
+            <button onclick="recordStopwatchToTracker()" style="padding:4px 10px; font-size:0.75rem; background:var(--accent); color:white; border:none;">기록</button>
+        </div>
+
+        <div class="mini-tracker-preview" onclick="openTrackerModal()">
+            <span class="mini-cal-icon">📅</span>
+            <span class="mini-cal-text" id="miniTrackerStatus">골 트래커</span>
+        </div>
+    </div>
+
+    <!-- 골 트래커 모달 창 -->
+    <div class="modal-overlay" id="trackerModal" onclick="closeTrackerModalOnBg(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 style="font-size: 1.15rem; font-weight: 700;">📅 연습 달성 골 트래커</h3>
+                <button onclick="closeTrackerModal()" style="border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
+            </div>
+            <div id="calendarMonthTitle" style="font-size: 0.85rem; font-weight: 600; color: var(--text-sub); text-align: center;"></div>
+            
+            <div class="calendar-grid" id="calendarGrid"></div>
+
+            <div class="comment-section">
+                <div class="comment-date-title" id="selectedDateTitle">날짜를 선택하세요</div>
+                <textarea id="dayCommentInput" class="comment-textarea" placeholder="오늘의 연습 소감이나 스톱워치 기록이 여기에 남습니다..." oninput="saveComment()"></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button onclick="exportData()">백업</button>
+                <button onclick="importDataClick()">불러오기</button>
+                <button class="active" onclick="closeTrackerModal()" style="background: var(--accent); color: white; border: none;">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>🎸 데일리 기타 연습 루틴</h1>
+
+        <div class="tab-menu">
+            <button class="tab-btn active" onclick="switchTab(1)">기초연습</button>
+            <button class="tab-btn" onclick="switchTab(2)">4,5번 손가락 연습</button>
+        </div>
+
+        <!-- 챕터 1: 기초연습 -->
+        <div id="section1" class="section-content active">
+            <!-- 1번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">1. 크로매틱(Chromatic) 연습</div></div>
+                <div class="card-desc">• <b>왼손 제어:</b> 손가락이 지판에서 뜨지 않도록 최소한의 동작 유지.<br>• <b>오른손 탈력:</b> 피크를 가볍게 쥐고 부드러운 톤 만들기.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-1" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(1)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-1" for="img-input-1">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-1" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-1', 'label-1', 'actions-1')">
+                    <img id="preview-1" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-1">
+                        <button onclick="document.getElementById('img-input-1').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-1', 'label-1', 'actions-1', 'img-input-1')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(1, 10)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-1" onclick="editTimerTime(1, 10)">10:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-1" onclick="toggleTimer(1, 10)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(1, 10)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">2. 펜타토닉 스케일(Pentatonic Scale) 연습</div></div>
+                <div class="card-desc">포지션 블록별 상행/하행 반복, 지그재그 패턴 연습.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-2" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(2)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-2" for="img-input-2">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-2" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-2', 'label-2', 'actions-2')">
+                    <img id="preview-2" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-2">
+                        <button onclick="document.getElementById('img-input-2').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-2', 'label-2', 'actions-2', 'img-input-2')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(2, 10)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-2" onclick="editTimerTime(2, 10)">10:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-2" onclick="toggleTimer(2, 10)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(2, 10)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">3. 코드 스트로크 강약(다이내믹스) 연습</div></div>
+                <div class="card-desc">C, G 코드로 약한 스트로크와 강한 스트로크 자유롭게 오가기.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-3" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(3)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-3" for="img-input-3">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-3" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-3', 'label-3', 'actions-3')">
+                    <img id="preview-3" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-3">
+                        <button onclick="document.getElementById('img-input-3').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-3', 'label-3', 'actions-3', 'img-input-3')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(3, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-3" onclick="editTimerTime(3, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-3" onclick="toggleTimer(3, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(3, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">4. 불필요한 줄(여현) 뮤트 연습</div></div>
+                <div class="card-desc">2, 3번 줄 연주 시 남는 손가락을 활용한 4가지 뮤트 폼 숙달.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-4" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(4)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-4" for="img-input-4">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-4" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-4', 'label-4', 'actions-4')">
+                    <img id="preview-4" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-4">
+                        <button onclick="document.getElementById('img-input-4').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-4', 'label-4', 'actions-4', 'img-input-4')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(4, 15)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-4" onclick="editTimerTime(4, 15)">15:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-4" onclick="toggleTimer(4, 15)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(4, 15)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">5. 메트로놈을 활용한 체내 리딩 훈련</div></div>
+                <div class="card-desc">클릭을 2, 4박만 울리게 하거나 첫 박만 울려 내면의 리듬감 기르기.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-5" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(5)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-5" for="img-input-5">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-5" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-5', 'label-5', 'actions-5')">
+                    <img id="preview-5" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-5">
+                        <button onclick="document.getElementById('img-input-5').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-5', 'label-5', 'actions-5', 'img-input-5')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(5, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-5" onclick="editTimerTime(5, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-5" onclick="toggleTimer(5, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(5, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 챕터 2: 4,5번 손가락 연습 (20~28번 카드) -->
+        <div id="section2" class="section-content">
+            <!-- 20번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">1. 1번 줄 약지·새끼손가락 기본 프레이즈</div></div>
+                <div class="card-desc">검지 고정 상태에서 약지와 새끼손가락 얼터네이트 피킹 연습.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-20" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(20)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-20" for="img-input-20">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-20" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-20', 'label-20', 'actions-20')">
+                    <img id="preview-20" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-20">
+                        <button onclick="document.getElementById('img-input-20').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-20', 'label-20', 'actions-20', 'img-input-20')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(20, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-20" onclick="editTimerTime(20, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-20" onclick="toggleTimer(20, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(20, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 21번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">2. 약지·새끼손가락 반음 이동 (6번 줄 방향 확장)</div></div>
+                <div class="card-desc">엄지 위치를 낮추고 반음 크로매틱 패턴을 줄 넘나들며 연습.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-21" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(21)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-21" for="img-input-21">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-21" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-21', 'label-21', 'actions-21')">
+                    <img id="preview-21" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-21">
+                        <button onclick="document.getElementById('img-input-21').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-21', 'label-21', 'actions-21', 'img-input-21')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(21, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-21" onclick="editTimerTime(21, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-21" onclick="toggleTimer(21, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(21, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 22번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">3. 반음 역방향 패턴</div></div>
+                <div class="card-desc">새끼손가락이 먼저 닿고 약지가 뒤따라오는 역방향 진행 훈련.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-22" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(22)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-22" for="img-input-22">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-22" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-22', 'label-22', 'actions-22')">
+                    <img id="preview-22" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-22">
+                        <button onclick="document.getElementById('img-input-22').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-22', 'label-22', 'actions-22', 'img-input-22')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(22, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-22" onclick="editTimerTime(22, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-22" onclick="toggleTimer(22, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(22, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 23번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">4. 3연음(셋잇단음표) 형태의 빠른 연속 프레이즈</div></div>
+                <div class="card-desc">3음 단위로 쪼개어 속도를 높이며 반응 속도 끌어올리기.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-23" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(23)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-23" for="img-input-23">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-23" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-23', 'label-23', 'actions-23')">
+                    <img id="preview-23" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-23">
+                        <button onclick="document.getElementById('img-input-23').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-23', 'label-23', 'actions-23', 'img-input-23')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(23, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-23" onclick="editTimerTime(23, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-23" onclick="toggleTimer(23, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(23, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 24번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">5. 검지·중지 고정 후 약지만 독립 동작</div></div>
+                <div class="card-desc">고난도 독립성 훈련.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-24" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(24)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-24" for="img-input-24">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-24" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-24', 'label-24', 'actions-24')">
+                    <img id="preview-24" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-24">
+                        <button onclick="document.getElementById('img-input-24').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-24', 'label-24', 'actions-24', 'img-input-24')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(24, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-24" onclick="editTimerTime(24, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-24" onclick="toggleTimer(24, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(24, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 25번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">6. 검지·중지·약지 고정 후 새끼손가락 독립 동작</div></div>
+                <div class="card-desc">새끼손가락의 근력과 독립성을 집중적으로 키우는 핵심 메뉴.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-25" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(25)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-25" for="img-input-25">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-25" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-25', 'label-25', 'actions-25')">
+                    <img id="preview-25" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-25">
+                        <button onclick="document.getElementById('img-input-25').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-25', 'label-25', 'actions-25', 'img-input-25')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(25, 7)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-25" onclick="editTimerTime(25, 7)">07:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-25" onclick="toggleTimer(25, 7)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(25, 7)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 26번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">7. 특정 손가락 고정 후 나머지 손가락 운지</div></div>
+                <div class="card-desc">코드 체인지 시 손가락이 따로 노는 문제 해결.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-26" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(26)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-26" for="img-input-26">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-26" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-26', 'label-26', 'actions-26')">
+                    <img id="preview-26" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-26">
+                        <button onclick="document.getElementById('img-input-26').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-26', 'label-26', 'actions-26', 'img-input-26')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(26, 8)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-26" onclick="editTimerTime(26, 8)">08:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-26" onclick="toggleTimer(26, 8)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(26, 8)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 27번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">8. 대각선 반음 이동 패턴</div></div>
+                <div class="card-desc">줄과 플랫이 대각선으로 엇갈린 상태에서 유연성 확장.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-27" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(27)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-27" for="img-input-27">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-27" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-27', 'label-27', 'actions-27')">
+                    <img id="preview-27" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-27">
+                        <button onclick="document.getElementById('img-input-27').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-27', 'label-27', 'actions-27', 'img-input-27')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(27, 5)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-27" onclick="editTimerTime(27, 5)">05:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-27" onclick="toggleTimer(27, 5)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(27, 5)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 28번 카드 -->
+            <div class="practice-card">
+                <div class="card-header"><div class="card-title">9. 최종 보스: 두 손가락 고정 + 복합 크로매틱</div></div>
+                <div class="card-desc">최고 난도 마무리 연습.</div>
+                <div class="card-memo-container">
+                    <textarea class="card-memo-input" id="memo-28" placeholder="이 단계에 대한 오늘의 메모나 피드백을 적어보세요..." oninput="saveCardMemo(28)"></textarea>
+                </div>
+                <div class="image-upload-container">
+                    <label class="upload-label" id="label-28" for="img-input-28">➕ 타브/이미지 추가하기</label>
+                    <input type="file" id="img-input-28" class="upload-input" accept="image/*" onchange="loadAndSaveImage(event, 'preview-28', 'label-28', 'actions-28')">
+                    <img id="preview-28" src="" alt="타브 이미지">
+                    <div class="image-actions" id="actions-28">
+                        <button onclick="document.getElementById('img-input-28').click()">이미지 변경</button>
+                        <button onclick="removeImage('preview-28', 'label-28', 'actions-28', 'img-input-28')">삭제</button>
+                    </div>
+                </div>
+                <div class="timer-area">
+                    <div class="pomodoro-capsule">
+                        <button class="pomodoro-setting-btn" onclick="editTimerTime(28, 7)">⚙️</button>
+                        <span class="pomodoro-display" id="timer-disp-28" onclick="editTimerTime(28, 7)">07:00</span>
+                        <div class="pomodoro-btns">
+                            <button class="pomodoro-btn" id="t-btn-28" onclick="toggleTimer(28, 7)">시작</button>
+                            <button class="pomodoro-btn" onclick="resetTimer(28, 7)">초기화</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabNum) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.section-content').forEach(sec => sec.classList.remove('active'));
+            if(tabNum === 1) {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('section1').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('section2').classList.add('active');
+            }
+        }
+
+        /* 메트로놈 로직 */
+        let audioCtx = null;
+        let metroTimer = null;
+        let isPlaying = false;
+        let currentBpm = 100;
+        let beatCount = 0;
+
+        function setBpm(val) {
+            let num = parseInt(val);
+            if(isNaN(num)) num = 100;
+            if(num < 40) num = 40; if(num > 240) num = 240;
+            currentBpm = num;
+            document.getElementById('bpmNumberText').innerText = currentBpm;
+            document.getElementById('bpmSlider').value = currentBpm;
+            if(isPlaying) { toggleMetronome(); toggleMetronome(); }
+        }
+        function changeBpm(amount) { setBpm(currentBpm + amount); }
+        function updateBpmFromSlider(val) { setBpm(val); }
+        function updateBpmFromEditable(text) { setBpm(text); }
+
+        function toggleMetronome() {
+            if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+            const playBtn = document.getElementById('metroPlayBtn');
+            if(isPlaying) {
+                clearInterval(metroTimer);
+                isPlaying = false;
+                playBtn.innerText = "▶ 시작";
+                playBtn.classList.remove('active');
+                clearDots();
+            } else {
+                const interval = (60 / currentBpm) * 1000;
+                beatCount = 0;
+                metroTimer = setInterval(playClick, interval);
+                isPlaying = true;
+                playBtn.innerText = "⏹ 정지";
+                playBtn.classList.add('active');
+            }
+        }
+
+        function playClick() {
+            if(!audioCtx) return;
+            const soundType = document.getElementById('metroSoundSelect').value;
+            const volumeVal = parseFloat(document.getElementById('metroVol').value);
+
+            for(let i=0; i<4; i++) { document.getElementById('dot-' + i).classList.remove('active'); }
+            document.getElementById('dot-' + beatCount).classList.add('active');
+
+            let isAccented = (beatCount === 0);
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            if(soundType === 'beep') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isAccented ? 1200 : 800, audioCtx.currentTime);
+            } else if(soundType === 'woodblock') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(isAccented ? 900 : 600, audioCtx.currentTime);
+            } else {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(isAccented ? 1500 : 1000, audioCtx.currentTime);
+            }
+
+            gainNode.gain.setValueAtTime(volumeVal, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+
+            beatCount = (beatCount + 1) % 4;
+        }
+
+        function clearDots() {
+            for(let i=0; i<4; i++) { document.getElementById('dot-' + i).classList.remove('active'); }
+        }
+
+        /* 독립 상시 스톱워치 로직 */
+        let globalSwSeconds = 0;
+        let globalSwInterval = null;
+        let globalSwRunning = false;
+
+        function toggleGlobalStopwatch() {
+            let btn = document.getElementById('globalSwBtn');
+            if(globalSwRunning) {
+                clearInterval(globalSwInterval);
+                globalSwInterval = null;
+                globalSwRunning = false;
+                btn.innerText = "시작";
+            } else {
+                globalSwRunning = true;
+                btn.innerText = "정지";
+                globalSwInterval = setInterval(() => {
+                    globalSwSeconds++;
+                    let m = String(Math.floor(globalSwSeconds / 60)).padStart(2, '0');
+                    let s = String(globalSwSeconds % 60).padStart(2, '0');
+                    document.getElementById('globalSwDisplay').innerText = `${m}:${s}`;
+                }, 1000);
+            }
+        }
+
+        function recordStopwatchToTracker() {
+            if(globalSwSeconds <= 0) {
+                alert("기록할 스톱워치 시간이 없습니다!");
+                return;
+            }
+            let m = Math.floor(globalSwSeconds / 60);
+            let s = globalSwSeconds % 60;
+            let timeStr = `${m}분 ${s}초`;
+
+            let now = new Date();
+            let dateKey = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            
+            let trackerData = JSON.parse(localStorage.getItem('guitar_tracker_data') || '{}');
+            if(!trackerData[dateKey]) trackerData[dateKey] = { completed: false, comment: "" };
+            
+            trackerData[dateKey].completed = true;
+            let existingComment = trackerData[dateKey].comment ? trackerData[dateKey].comment + "\n" : "";
+            trackerData[dateKey].comment = existingComment + `⏱️ 스톱워치 연습 기록: ${timeStr}`;
+            
+            localStorage.setItem('guitar_tracker_data', JSON.stringify(trackerData));
+            syncToGoogleSheets(trackerData);
+            updateMiniStatus();
+            alert(`✨ 오늘 골 트래커에 스톱워치 기록(${timeStr})이 저장되었습니다!`);
+        }
+
+        /* 각 카드별 메모 저장 로직 (1~5, 20~28) */
+        function saveCardMemo(cardId) {
+            let memoText = document.getElementById('memo-' + cardId).value;
+            let savedMemos = JSON.parse(localStorage.getItem('guitar_practice_card_memos') || '{}');
+            savedMemos[cardId] = memoText;
+            localStorage.setItem('guitar_practice_card_memos', JSON.stringify(savedMemos));
+        }
+
+        function restoreSavedCardMemos() {
+            let savedMemos = JSON.parse(localStorage.getItem('guitar_practice_card_memos') || '{}');
+            for(let cardId in savedMemos) {
+                let memoInput = document.getElementById('memo-' + cardId);
+                if(memoInput) {
+                    memoInput.value = savedMemos[cardId];
+                }
+            }
+        }
+
+        /* 개별 타이머 */
+        let timerSeconds = {};
+        let timerIntervals = {};
+
+        function getSavedMinutes(id, defaultMin) {
+            let savedTimes = JSON.parse(localStorage.getItem('guitar_practice_timer_mins') || '{}');
+            return savedTimes[id] !== undefined ? savedTimes[id] : defaultMin;
+        }
+
+        function formatTime(totalSec) {
+            let m = String(Math.floor(totalSec / 60)).padStart(2, '0');
+            let s = String(totalSec % 60).padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function editTimerTime(id, defaultMin) {
+            let currentMin = Math.floor(getSavedMinutes(id, defaultMin));
+            let input = prompt("원하는 연습 시간(분)을 입력하세요:", currentMin);
+            if(input !== null) {
+                let newMin = parseInt(input);
+                if(!isNaN(newMin) && newMin > 0) {
+                    let savedTimes = JSON.parse(localStorage.getItem('guitar_practice_timer_mins') || '{}');
+                    savedTimes[id] = newMin;
+                    localStorage.setItem('guitar_practice_timer_mins', JSON.stringify(savedTimes));
+
+                    timerSeconds[id] = newMin * 60;
+                    document.getElementById('timer-disp-' + id).innerText = formatTime(timerSeconds[id]);
+                } else { alert("올바른 숫자를 입력해주세요!"); }
+            }
+        }
+
+        function toggleTimer(id, defaultMin) {
+            let customMin = getSavedMinutes(id, defaultMin);
+            if(timerSeconds[id] === undefined) { timerSeconds[id] = customMin * 60; }
+            let btnEl = document.getElementById('t-btn-' + id);
+
+            if(timerIntervals[id]) {
+                clearInterval(timerIntervals[id]);
+                timerIntervals[id] = null;
+                if(btnEl) btnEl.innerText = "시작";
+            } else {
+                if(timerSeconds[id] <= 0) { timerSeconds[id] = customMin * 60; }
+                if(btnEl) btnEl.innerText = "정지";
+                timerIntervals[id] = setInterval(() => {
+                    if(timerSeconds[id] > 0) {
+                        timerSeconds[id]--;
+                        document.getElementById('timer-disp-' + id).innerText = formatTime(timerSeconds[id]);
+                    } else {
+                        clearInterval(timerIntervals[id]);
+                        timerIntervals[id] = null;
+                        if(btnEl) btnEl.innerText = "시작";
+                        alert("🎉 연습 시간이 완료되었습니다! 수고하셨습니다!");
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer(id, defaultMin) {
+            if(timerIntervals[id]) { clearInterval(timerIntervals[id]); timerIntervals[id] = null; }
+            let btnEl = document.getElementById('t-btn-' + id);
+            if(btnEl) btnEl.innerText = "시작";
+            let customMin = getSavedMinutes(id, defaultMin);
+            timerSeconds[id] = customMin * 60;
+            document.getElementById('timer-disp-' + id).innerText = formatTime(timerSeconds[id]);
+        }
+
+        function restoreSavedTimers() {
+            let savedTimes = JSON.parse(localStorage.getItem('guitar_practice_timer_mins') || '{}');
+            let defaultMins = { 1:10, 2:10, 3:5, 4:15, 5:5, 20:5, 21:5, 22:5, 23:5, 24:5, 25:7, 26:8, 27:5, 28:7 };
+            for(let id in defaultMins) {
+                let min = savedTimes[id] !== undefined ? savedTimes[id] : defaultMins[id];
+                let disp = document.getElementById('timer-disp-' + id);
+                if(disp) disp.innerText = String(min).padStart(2, '0') + ":00";
+            }
+        }
+
+        /* 이미지 영구 저장 */
+        function loadAndSaveImage(event, previewId, labelId, actionsId) {
+            const file = event.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const base64Data = e.target.result;
+                    document.getElementById(previewId).src = base64Data;
+                    document.getElementById(previewId).style.display = 'block';
+                    document.getElementById(labelId).style.display = 'none';
+                    document.getElementById(actionsId).style.display = 'flex';
+
+                    let savedImages = JSON.parse(localStorage.getItem('guitar_practice_images') || '{}');
+                    savedImages[previewId] = base64Data;
+                    localStorage.setItem('guitar_practice_images', JSON.stringify(savedImages));
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeImage(previewId, labelId, actionsId, inputId) {
+            document.getElementById(previewId).src = "";
+            document.getElementById(previewId).style.display = 'none';
+            document.getElementById(labelId).style.display = 'block';
+            document.getElementById(actionsId).style.display = 'none';
+            document.getElementById(inputId).value = "";
+
+            let savedImages = JSON.parse(localStorage.getItem('guitar_practice_images') || '{}');
+            delete savedImages[previewId];
+            localStorage.setItem('guitar_practice_images', JSON.stringify(savedImages));
+        }
+
+        function restoreSavedImages() {
+            let savedImages = JSON.parse(localStorage.getItem('guitar_practice_images') || '{}');
+            for(let previewId in savedImages) {
+                let cardNum = previewId.replace('preview-', '');
+                document.getElementById(previewId).src = savedImages[previewId];
+                document.getElementById(previewId).style.display = 'block';
+                document.getElementById('label-' + cardNum).style.display = 'none';
+                document.getElementById('actions-' + cardNum).style.display = 'flex';
+            }
+        }
+
+        /* 구글 시트 연동 및 골 트래커 */
+        let selectedDateKey = null;
+
+        function syncToGoogleSheets(trackerData) {
+            if(GOOGLE_SHEETS_WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL")) return;
+            fetch(GOOGLE_SHEETS_WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(trackerData)
+            }).catch(err => console.log("Google Sheets sync error:", err));
+        }
+
+        function loadFromGoogleSheets() {
+            if(GOOGLE_SHEETS_WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL")) return;
+            fetch(GOOGLE_SHEETS_WEB_APP_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if(data && Object.keys(data).length > 0) {
+                        localStorage.setItem('guitar_tracker_data', JSON.stringify(data));
+                        initCalendar();
+                    }
+                }).catch(err => console.log("Google Sheets load error:", err));
+        }
+
+        function openTrackerModal() { 
+            document.getElementById('trackerModal').style.display = 'flex'; 
+            initCalendar(); 
+            loadFromGoogleSheets();
+        }
+
+        function closeTrackerModal() { document.getElementById('trackerModal').style.display = 'none'; }
+        function closeTrackerModalOnBg(e) { if(e.target.id === 'trackerModal') closeTrackerModal(); }
+
+        function initCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const title = document.getElementById('calendarMonthTitle');
+            grid.innerHTML = "";
+            const now = new Date();
+            const year = now.getFullYear(); const month = now.getMonth();
+            title.innerText = `${year}년 ${month + 1}월`;
+
+            ['일', '월', '화', '수', '목', '금', '토'].forEach(d => {
+                let div = document.createElement('div'); div.className = 'day-name'; div.innerText = d; grid.appendChild(div);
+            });
+
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDays = new Date(year, month + 1, 0).getDate();
+            let trackerData = JSON.parse(localStorage.getItem('guitar_tracker_data') || '{}');
+
+            for(let i=0; i<firstDayIndex; i++) { grid.appendChild(document.createElement('div')); }
+
+            for(let i=1; i<=totalDays; i++) {
+                let dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                let dayDiv = document.createElement('div');
+                dayDiv.className = 'calendar-day'; dayDiv.innerText = i;
+                if(trackerData[dateKey] && trackerData[dateKey].completed) dayDiv.classList.add('completed');
+
+                dayDiv.onclick = function() {
+                    if(!trackerData[dateKey]) trackerData[dateKey] = { completed: false, comment: "" };
+                    trackerData[dateKey].completed = !trackerData[dateKey].completed;
+                    localStorage.setItem('guitar_tracker_data', JSON.stringify(trackerData));
+                    syncToGoogleSheets(trackerData);
+                    selectDate(dateKey, i); initCalendar();
+                };
+
+                let todayKey = `${year}-${String(month+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+                if(!selectedDateKey) selectDate(todayKey, now.getDate());
+                grid.appendChild(dayDiv);
+            }
+            updateMiniStatus();
+        }
+
+        function selectDate(dateKey, dayNum) {
+            selectedDateKey = dateKey;
+            document.getElementById('selectedDateTitle').innerText = `${dayNum}일 연습 코멘트`;
+            let trackerData = JSON.parse(localStorage.getItem('guitar_tracker_data') || '{}');
+            document.getElementById('dayCommentInput').value = (trackerData[dateKey] && trackerData[dateKey].comment) ? trackerData[dateKey].comment : "";
+        }
+
+        function saveComment() {
+            if(!selectedDateKey) return;
+            let trackerData = JSON.parse(localStorage.getItem('guitar_tracker_data') || '{}');
+            if(!trackerData[selectedDateKey]) trackerData[selectedDateKey] = { completed: false, comment: "" };
+            trackerData[selectedDateKey].comment = document.getElementById('dayCommentInput').value;
+            localStorage.setItem('guitar_tracker_data', JSON.stringify(trackerData));
+            syncToGoogleSheets(trackerData);
+        }
+
+        function updateMiniStatus() {
+            let trackerData = JSON.parse(localStorage.getItem('guitar_tracker_data') || '{}');
+            let today = new Date();
+            let dateKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const statusEl = document.getElementById('miniTrackerStatus');
+            if(trackerData[dateKey] && trackerData[dateKey].completed) {
+                statusEl.innerText = "오늘 완료! 🔥"; statusEl.style.color = "#34C759";
+            } else {
+                statusEl.innerText = "골 트래커"; statusEl.style.color = "var(--text-sub)";
+            }
+        }
+
+        function exportData() {
+            let data = localStorage.getItem('guitar_tracker_data');
+            let blob = new Blob([data], {type: "application/json"});
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a'); a.href = url; a.download = "guitar_tracker_backup.json"; a.click();
+        }
+
+        function importDataClick() {
+            let input = document.createElement('input'); input.type = 'file'; input.accept = ".json";
+            input.onchange = e => {
+                let reader = new FileReader();
+                reader.readAsText(e.target.files[0], "UTF-8");
+                reader.onload = readerEvent => {
+                    let imported = JSON.parse(readerEvent.target.result);
+                    localStorage.setItem('guitar_tracker_data', JSON.stringify(imported));
+                    syncToGoogleSheets(imported);
+                    initCalendar(); alert("데이터를 성공적으로 불러왔고 구글 시트에 동기화했습니다!");
+                }
+            };
+            input.click();
+        }
+
+        window.onload = function() {
+            loadFromGoogleSheets();
+            updateMiniStatus();
+            restoreSavedImages();
+            restoreSavedTimers();
+            restoreSavedCardMemos();
+        };
+    </script>
+</body>
+</html>
