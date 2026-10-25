@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>데일리 기타 연습 루틴 & 골 트래커</title>
-    <!-- 구글 폰트 적용 -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -99,10 +98,11 @@
             font-weight: 700;
             color: var(--accent);
             line-height: 1;
+            outline: none;
         }
 
         .bpm-slider {
-            width: 80px;
+            width: 75px;
             accent-color: var(--accent);
             cursor: pointer;
         }
@@ -172,6 +172,7 @@
             cursor: pointer;
             border: 1px solid var(--border-color);
             transition: background 0.2s;
+            z-index: 1001;
         }
 
         .mini-tracker-preview:hover {
@@ -269,17 +270,17 @@
             font-size: 0.92rem;
             color: var(--text-sub);
             line-height: 1.5;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
 
-        /* 각 단계별 메모장 스타일 추가 */
+        /* 각 단계별 개별 메모 입력창 */
         .card-memo-container {
-            margin-top: 14px;
+            margin-bottom: 14px;
         }
         .card-memo-input {
             width: 100%;
-            height: 55px;
-            padding: 10px;
+            height: 60px;
+            padding: 10px 12px;
             border: 1px solid var(--border-color);
             border-radius: 10px;
             resize: none;
@@ -375,10 +376,6 @@
             color: var(--accent);
         }
 
-        .pomodoro-display.completed-timer-text {
-            color: #34C759;
-        }
-
         .pomodoro-btns {
             display: flex;
             gap: 8px;
@@ -417,7 +414,7 @@
             color: var(--accent);
         }
 
-        /* 캘린더 모달 */
+        /* 캘린더 모달 창 스타일 */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -429,7 +426,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
+            z-index: 3000;
         }
 
         .modal-card {
@@ -525,6 +522,7 @@
 <body>
 
     <script>
+        // 구글 웹 앱 URL 주소 (연동 원하시면 아래에 넣으세요)
         const GOOGLE_SHEETS_WEB_APP_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE"; 
     </script>
 
@@ -535,8 +533,11 @@
                 <button class="metro-start-btn" id="metroPlayBtn" onclick="toggleMetronome()">▶ 시작</button>
                 <button class="bpm-step-btn" onclick="changeBpm(-5)">-5</button>
                 <button class="bpm-step-btn" onclick="changeBpm(-1)">-1</button>
-                <span style="font-weight:700; font-family:'Plus Jakarta Sans'; color:var(--accent);" id="bpmNumberText">100</span>
-                <span style="font-size:0.75rem; color:var(--text-sub);">BPM</span>
+                
+                <div class="bpm-display-group">
+                    <div class="bpm-number" id="bpmNumberText" contenteditable="true" onblur="updateBpmFromEditable(this.innerText)">100</div>
+                </div>
+
                 <button class="bpm-step-btn" onclick="changeBpm(1)">+1</button>
                 <button class="bpm-step-btn" onclick="changeBpm(5)">+5</button>
                 <input type="range" class="bpm-slider" id="bpmSlider" min="40" max="240" value="100" oninput="updateBpmFromSlider(this.value)">
@@ -573,7 +574,7 @@
         </div>
     </div>
 
-    <!-- 골 트래커 모달 -->
+    <!-- 골 트래커 모달 창 -->
     <div class="modal-overlay" id="trackerModal" onclick="closeTrackerModalOnBg(event)">
         <div class="modal-card">
             <div class="modal-header">
@@ -605,10 +606,10 @@
             <button class="tab-btn" onclick="switchTab(2)">4,5번 손가락 연습</button>
         </div>
 
-        <!-- 챕터 1 -->
+        <!-- 챕터 1: 기초연습 -->
         <div id="section1" class="section-content active">
             <!-- 1번 카드 -->
-            <div class="practice-card" data-id="1">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">1. 크로매틱(Chromatic) 연습</div></div>
                 <div class="card-desc">• <b>왼손 제어:</b> 손가락이 지판에서 뜨지 않도록 최소한의 동작 유지.<br>• <b>오른손 탈력:</b> 피크를 가볍게 쥐고 부드러운 톤 만들기.</div>
                 <div class="card-memo-container">
@@ -620,7 +621,7 @@
                     <img id="preview-1" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-1">
                         <button onclick="document.getElementById('img-input-1').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-1', 'label-1', 'actions-1')">삭제</button>
+                        <button onclick="removeImage('preview-1', 'label-1', 'actions-1', 'img-input-1')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -636,7 +637,7 @@
             </div>
 
             <!-- 2번 카드 -->
-            <div class="practice-card" data-id="2">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">2. 펜타토닉 스케일(Pentatonic Scale) 연습</div></div>
                 <div class="card-desc">포지션 블록별 상행/하행 반복, 지그재그 패턴 연습.</div>
                 <div class="card-memo-container">
@@ -648,7 +649,7 @@
                     <img id="preview-2" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-2">
                         <button onclick="document.getElementById('img-input-2').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-2', 'label-2', 'actions-2')">삭제</button>
+                        <button onclick="removeImage('preview-2', 'label-2', 'actions-2', 'img-input-2')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -664,7 +665,7 @@
             </div>
 
             <!-- 3번 카드 -->
-            <div class="practice-card" data-id="3">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">3. 코드 스트로크 강약(다이내믹스) 연습</div></div>
                 <div class="card-desc">C, G 코드로 약한 스트로크와 강한 스트로크 자유롭게 오가기.</div>
                 <div class="card-memo-container">
@@ -676,7 +677,7 @@
                     <img id="preview-3" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-3">
                         <button onclick="document.getElementById('img-input-3').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-3', 'label-3', 'actions-3')">삭제</button>
+                        <button onclick="removeImage('preview-3', 'label-3', 'actions-3', 'img-input-3')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -692,7 +693,7 @@
             </div>
 
             <!-- 4번 카드 -->
-            <div class="practice-card" data-id="4">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">4. 불필요한 줄(여현) 뮤트 연습</div></div>
                 <div class="card-desc">2, 3번 줄 연주 시 남는 손가락을 활용한 4가지 뮤트 폼 숙달.</div>
                 <div class="card-memo-container">
@@ -704,7 +705,7 @@
                     <img id="preview-4" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-4">
                         <button onclick="document.getElementById('img-input-4').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-4', 'label-4', 'actions-4')">삭제</button>
+                        <button onclick="removeImage('preview-4', 'label-4', 'actions-4', 'img-input-4')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -720,7 +721,7 @@
             </div>
 
             <!-- 5번 카드 -->
-            <div class="practice-card" data-id="5">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">5. 메트로놈을 활용한 체내 리딩 훈련</div></div>
                 <div class="card-desc">클릭을 2, 4박만 울리게 하거나 첫 박만 울려 내면의 리듬감 기르기.</div>
                 <div class="card-memo-container">
@@ -732,7 +733,7 @@
                     <img id="preview-5" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-5">
                         <button onclick="document.getElementById('img-input-5').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-5', 'label-5', 'actions-5')">삭제</button>
+                        <button onclick="removeImage('preview-5', 'label-5', 'actions-5', 'img-input-5')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -748,10 +749,10 @@
             </div>
         </div>
 
-        <!-- 챕터 2 -->
+        <!-- 챕터 2: 4,5번 손가락 연습 (20~28번 카드) -->
         <div id="section2" class="section-content">
             <!-- 20번 카드 -->
-            <div class="practice-card" data-id="20">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">1. 1번 줄 약지·새끼손가락 기본 프레이즈</div></div>
                 <div class="card-desc">검지 고정 상태에서 약지와 새끼손가락 얼터네이트 피킹 연습.</div>
                 <div class="card-memo-container">
@@ -763,7 +764,7 @@
                     <img id="preview-20" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-20">
                         <button onclick="document.getElementById('img-input-20').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-20', 'label-20', 'actions-20')">삭제</button>
+                        <button onclick="removeImage('preview-20', 'label-20', 'actions-20', 'img-input-20')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -779,7 +780,7 @@
             </div>
 
             <!-- 21번 카드 -->
-            <div class="practice-card" data-id="21">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">2. 약지·새끼손가락 반음 이동 (6번 줄 방향 확장)</div></div>
                 <div class="card-desc">엄지 위치를 낮추고 반음 크로매틱 패턴을 줄 넘나들며 연습.</div>
                 <div class="card-memo-container">
@@ -791,7 +792,7 @@
                     <img id="preview-21" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-21">
                         <button onclick="document.getElementById('img-input-21').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-21', 'label-21', 'actions-21')">삭제</button>
+                        <button onclick="removeImage('preview-21', 'label-21', 'actions-21', 'img-input-21')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -807,7 +808,7 @@
             </div>
 
             <!-- 22번 카드 -->
-            <div class="practice-card" data-id="22">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">3. 반음 역방향 패턴</div></div>
                 <div class="card-desc">새끼손가락이 먼저 닿고 약지가 뒤따라오는 역방향 진행 훈련.</div>
                 <div class="card-memo-container">
@@ -819,7 +820,7 @@
                     <img id="preview-22" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-22">
                         <button onclick="document.getElementById('img-input-22').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-22', 'label-22', 'actions-22')">삭제</button>
+                        <button onclick="removeImage('preview-22', 'label-22', 'actions-22', 'img-input-22')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -835,7 +836,7 @@
             </div>
 
             <!-- 23번 카드 -->
-            <div class="practice-card" data-id="23">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">4. 3연음(셋잇단음표) 형태의 빠른 연속 프레이즈</div></div>
                 <div class="card-desc">3음 단위로 쪼개어 속도를 높이며 반응 속도 끌어올리기.</div>
                 <div class="card-memo-container">
@@ -847,7 +848,7 @@
                     <img id="preview-23" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-23">
                         <button onclick="document.getElementById('img-input-23').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-23', 'label-23', 'actions-23')">삭제</button>
+                        <button onclick="removeImage('preview-23', 'label-23', 'actions-23', 'img-input-23')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -863,7 +864,7 @@
             </div>
 
             <!-- 24번 카드 -->
-            <div class="practice-card" data-id="24">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">5. 검지·중지 고정 후 약지만 독립 동작</div></div>
                 <div class="card-desc">고난도 독립성 훈련.</div>
                 <div class="card-memo-container">
@@ -875,7 +876,7 @@
                     <img id="preview-24" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-24">
                         <button onclick="document.getElementById('img-input-24').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-24', 'label-24', 'actions-24')">삭제</button>
+                        <button onclick="removeImage('preview-24', 'label-24', 'actions-24', 'img-input-24')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -891,7 +892,7 @@
             </div>
 
             <!-- 25번 카드 -->
-            <div class="practice-card" data-id="25">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">6. 검지·중지·약지 고정 후 새끼손가락 독립 동작</div></div>
                 <div class="card-desc">새끼손가락의 근력과 독립성을 집중적으로 키우는 핵심 메뉴.</div>
                 <div class="card-memo-container">
@@ -903,7 +904,7 @@
                     <img id="preview-25" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-25">
                         <button onclick="document.getElementById('img-input-25').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-25', 'label-25', 'actions-25')">삭제</button>
+                        <button onclick="removeImage('preview-25', 'label-25', 'actions-25', 'img-input-25')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -919,7 +920,7 @@
             </div>
 
             <!-- 26번 카드 -->
-            <div class="practice-card" data-id="26">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">7. 특정 손가락 고정 후 나머지 손가락 운지</div></div>
                 <div class="card-desc">코드 체인지 시 손가락이 따로 노는 문제 해결.</div>
                 <div class="card-memo-container">
@@ -931,7 +932,7 @@
                     <img id="preview-26" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-26">
                         <button onclick="document.getElementById('img-input-26').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-26', 'label-26', 'actions-26')">삭제</button>
+                        <button onclick="removeImage('preview-26', 'label-26', 'actions-26', 'img-input-26')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -947,7 +948,7 @@
             </div>
 
             <!-- 27번 카드 -->
-            <div class="practice-card" data-id="27">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">8. 대각선 반음 이동 패턴</div></div>
                 <div class="card-desc">줄과 플랫이 대각선으로 엇갈린 상태에서 유연성 확장.</div>
                 <div class="card-memo-container">
@@ -959,7 +960,7 @@
                     <img id="preview-27" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-27">
                         <button onclick="document.getElementById('img-input-27').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-27', 'label-27', 'actions-27')">삭제</button>
+                        <button onclick="removeImage('preview-27', 'label-27', 'actions-27', 'img-input-27')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -975,7 +976,7 @@
             </div>
 
             <!-- 28번 카드 -->
-            <div class="practice-card" data-id="28">
+            <div class="practice-card">
                 <div class="card-header"><div class="card-title">9. 최종 보스: 두 손가락 고정 + 복합 크로매틱</div></div>
                 <div class="card-desc">최고 난도 마무리 연습.</div>
                 <div class="card-memo-container">
@@ -987,7 +988,7 @@
                     <img id="preview-28" src="" alt="타브 이미지">
                     <div class="image-actions" id="actions-28">
                         <button onclick="document.getElementById('img-input-28').click()">이미지 변경</button>
-                        <button onclick="removeImage('preview-28', 'label-28', 'actions-28')">삭제</button>
+                        <button onclick="removeImage('preview-28', 'label-28', 'actions-28', 'img-input-28')">삭제</button>
                     </div>
                 </div>
                 <div class="timer-area">
@@ -1035,6 +1036,7 @@
         }
         function changeBpm(amount) { setBpm(currentBpm + amount); }
         function updateBpmFromSlider(val) { setBpm(val); }
+        function updateBpmFromEditable(text) { setBpm(text); }
 
         function toggleMetronome() {
             if(!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -1137,11 +1139,12 @@
             trackerData[dateKey].comment = existingComment + `⏱️ 스톱워치 연습 기록: ${timeStr}`;
             
             localStorage.setItem('guitar_tracker_data', JSON.stringify(trackerData));
+            syncToGoogleSheets(trackerData);
             updateMiniStatus();
-            alert(`✨ 오늘 골 트래커에 스톱워치 기록(${timeStr})이 반영되었습니다!`);
+            alert(`✨ 오늘 골 트래커에 스톱워치 기록(${timeStr})이 저장되었습니다!`);
         }
 
-        /* 각 단계별 카드 메모 저장 로직 */
+        /* 각 카드별 메모 저장 로직 (1~5, 20~28) */
         function saveCardMemo(cardId) {
             let memoText = document.getElementById('memo-' + cardId).value;
             let savedMemos = JSON.parse(localStorage.getItem('guitar_practice_card_memos') || '{}');
@@ -1159,7 +1162,7 @@
             }
         }
 
-        /* 각 카드별 타이머 로직 */
+        /* 개별 타이머 */
         let timerSeconds = {};
         let timerIntervals = {};
 
@@ -1185,9 +1188,7 @@
                     localStorage.setItem('guitar_practice_timer_mins', JSON.stringify(savedTimes));
 
                     timerSeconds[id] = newMin * 60;
-                    let disp = document.getElementById('timer-disp-' + id);
-                    disp.innerText = formatTime(timerSeconds[id]);
-                    disp.classList.remove('completed-timer-text');
+                    document.getElementById('timer-disp-' + id).innerText = formatTime(timerSeconds[id]);
                 } else { alert("올바른 숫자를 입력해주세요!"); }
             }
         }
@@ -1212,8 +1213,6 @@
                         clearInterval(timerIntervals[id]);
                         timerIntervals[id] = null;
                         if(btnEl) btnEl.innerText = "시작";
-                        let disp = document.getElementById('timer-disp-' + id);
-                        if(disp) disp.classList.add('completed-timer-text');
                         alert("🎉 연습 시간이 완료되었습니다! 수고하셨습니다!");
                     }
                 }, 1000);
@@ -1226,11 +1225,7 @@
             if(btnEl) btnEl.innerText = "시작";
             let customMin = getSavedMinutes(id, defaultMin);
             timerSeconds[id] = customMin * 60;
-            let disp = document.getElementById('timer-disp-' + id);
-            if(disp) {
-                disp.innerText = formatTime(timerSeconds[id]);
-                disp.classList.remove('completed-timer-text');
-            }
+            document.getElementById('timer-disp-' + id).innerText = formatTime(timerSeconds[id]);
         }
 
         function restoreSavedTimers() {
@@ -1243,7 +1238,7 @@
             }
         }
 
-        /* 이미지 영구 저장 로직 */
+        /* 이미지 영구 저장 */
         function loadAndSaveImage(event, previewId, labelId, actionsId) {
             const file = event.target.files[0];
             if(file) {
@@ -1263,11 +1258,12 @@
             }
         }
 
-        function removeImage(previewId, labelId, actionsId) {
+        function removeImage(previewId, labelId, actionsId, inputId) {
             document.getElementById(previewId).src = "";
             document.getElementById(previewId).style.display = 'none';
             document.getElementById(labelId).style.display = 'block';
             document.getElementById(actionsId).style.display = 'none';
+            document.getElementById(inputId).value = "";
 
             let savedImages = JSON.parse(localStorage.getItem('guitar_practice_images') || '{}');
             delete savedImages[previewId];
@@ -1285,13 +1281,37 @@
             }
         }
 
-        /* 골 트래커 로직 */
+        /* 구글 시트 연동 및 골 트래커 */
         let selectedDateKey = null;
 
-        function openTrackerModal() {
-            document.getElementById('trackerModal').style.display = 'flex';
-            initCalendar();
+        function syncToGoogleSheets(trackerData) {
+            if(GOOGLE_SHEETS_WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL")) return;
+            fetch(GOOGLE_SHEETS_WEB_APP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(trackerData)
+            }).catch(err => console.log("Google Sheets sync error:", err));
         }
+
+        function loadFromGoogleSheets() {
+            if(GOOGLE_SHEETS_WEB_APP_URL.includes("YOUR_GOOGLE_APPS_SCRIPT_URL")) return;
+            fetch(GOOGLE_SHEETS_WEB_APP_URL)
+                .then(res => res.json())
+                .then(data => {
+                    if(data && Object.keys(data).length > 0) {
+                        localStorage.setItem('guitar_tracker_data', JSON.stringify(data));
+                        initCalendar();
+                    }
+                }).catch(err => console.log("Google Sheets load error:", err));
+        }
+
+        function openTrackerModal() { 
+            document.getElementById('trackerModal').style.display = 'flex'; 
+            initCalendar(); 
+            loadFromGoogleSheets();
+        }
+
         function closeTrackerModal() { document.getElementById('trackerModal').style.display = 'none'; }
         function closeTrackerModalOnBg(e) { if(e.target.id === 'trackerModal') closeTrackerModal(); }
 
@@ -1299,10 +1319,8 @@
             const grid = document.getElementById('calendarGrid');
             const title = document.getElementById('calendarMonthTitle');
             grid.innerHTML = "";
-
             const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
+            const year = now.getFullYear(); const month = now.getMonth();
             title.innerText = `${year}년 ${month + 1}월`;
 
             ['일', '월', '화', '수', '목', '금', '토'].forEach(d => {
@@ -1319,15 +1337,14 @@
                 let dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 let dayDiv = document.createElement('div');
                 dayDiv.className = 'calendar-day'; dayDiv.innerText = i;
-
                 if(trackerData[dateKey] && trackerData[dateKey].completed) dayDiv.classList.add('completed');
 
                 dayDiv.onclick = function() {
                     if(!trackerData[dateKey]) trackerData[dateKey] = { completed: false, comment: "" };
                     trackerData[dateKey].completed = !trackerData[dateKey].completed;
                     localStorage.setItem('guitar_tracker_data', JSON.stringify(trackerData));
-                    selectDate(dateKey, i);
-                    initCalendar();
+                    syncToGoogleSheets(trackerData);
+                    selectDate(dateKey, i); initCalendar();
                 };
 
                 let todayKey = `${year}-${String(month+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -1350,26 +1367,19 @@
             if(!trackerData[selectedDateKey]) trackerData[selectedDateKey] = { completed: false, comment: "" };
             trackerData[selectedDateKey].comment = document.getElementById('dayCommentInput').value;
             localStorage.setItem('guitar_tracker_data', JSON.stringify(trackerData));
+            syncToGoogleSheets(trackerData);
         }
 
         function updateMiniStatus() {
             let trackerData = JSON.parse(localStorage.getItem('guitar_tracker_data') || '{}');
-            let now = new Date();
-            let year = now.getFullYear();
-            let month = now.getMonth();
-            let totalDays = new Date(year, month + 1, 0).getDate();
-            
-            let completedCount = 0;
-            for(let i=1; i<=totalDays; i++) {
-                let dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                if(trackerData[dateKey] && trackerData[dateKey].completed) {
-                    completedCount++;
-                }
-            }
-            let rate = Math.round((completedCount / totalDays) * 100);
-            
+            let today = new Date();
+            let dateKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
             const statusEl = document.getElementById('miniTrackerStatus');
-            statusEl.innerText = `성취율: ${rate}% (${completedCount}/${totalDays}일)`;
+            if(trackerData[dateKey] && trackerData[dateKey].completed) {
+                statusEl.innerText = "오늘 완료! 🔥"; statusEl.style.color = "#34C759";
+            } else {
+                statusEl.innerText = "골 트래커"; statusEl.style.color = "var(--text-sub)";
+            }
         }
 
         function exportData() {
@@ -1382,19 +1392,20 @@
         function importDataClick() {
             let input = document.createElement('input'); input.type = 'file'; input.accept = ".json";
             input.onchange = e => {
-                let file = e.target.files[0];
                 let reader = new FileReader();
-                reader.readAsText(file, "UTF-8");
+                reader.readAsText(e.target.files[0], "UTF-8");
                 reader.onload = readerEvent => {
-                    localStorage.setItem('guitar_tracker_data', readerEvent.target.result);
-                    initCalendar();
-                    alert("데이터를 성공적으로 불러왔습니다!");
+                    let imported = JSON.parse(readerEvent.target.result);
+                    localStorage.setItem('guitar_tracker_data', JSON.stringify(imported));
+                    syncToGoogleSheets(imported);
+                    initCalendar(); alert("데이터를 성공적으로 불러왔고 구글 시트에 동기화했습니다!");
                 }
-            }
+            };
             input.click();
         }
 
         window.onload = function() {
+            loadFromGoogleSheets();
             updateMiniStatus();
             restoreSavedImages();
             restoreSavedTimers();
